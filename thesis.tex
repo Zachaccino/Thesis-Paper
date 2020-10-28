@@ -20,7 +20,15 @@
 
 % Table of content
 \tableofcontents
+
+% List of figures
+\clearpage
+\addcontentsline{toc}{chapter}{\listfigurename}
 \listoffigures
+
+% List of tables
+\clearpage
+\addcontentsline{toc}{chapter}{\listtablename}
 \listoftables
 
 % Reset page number
@@ -34,7 +42,23 @@
 % Chapter 2 - Literature Review
 \subfile{chapters/chapter2}
 
-% Chapter 3 - Literature Review
+% Chapter 3 - System Overview
 \subfile{chapters/chapter3}
+
+% Chapter 4 - Architecture
+\subfile{chapters/chapter4}
+
+% Chapter 5 - Benchmark
+\subfile{chapters/chapter5}
+
+% Chapter 6 - Real World Testing
+\subfile{chapters/chapter6}
+
+% Chapter 7 - Conclusion
+\subfile{chapters/chapter7}
+
+% Bibliography
+\bibliography{bibliography} 
+\bibliographystyle{apalike}
 
 \end{document}
