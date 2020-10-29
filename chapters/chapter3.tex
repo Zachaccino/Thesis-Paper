@@ -102,12 +102,26 @@ Frontend is a web application built on top of the ReactJS framework and utilises
 
 \subsubsection{Load balancer}
 
+The load balancer used in the proposed system is Nginx. It is a piece of software that spawn multiple backend instances and distribute the incoming requests to the backend instance with the least amount of load. It also uses multiple threads to server the frontend web pages to improve the performance under load.
+
 \subsubsection{Governor}
 
+The governors are daemons for house keeping. That is, they are processes that are running in the background of the server and performing some predefined tasks periodically. There are only two governors in the proposed system. The first governor is called data aggregation governor and its job is aggregating the real-time data every minute. The second governor is called liveness monitoring governor and it checks if a device is publishing sensing data normally or timed out unexpectely. 
+
 \subsubsection{Message queue}
-\subsubsection{Async worker and job queue}
+
+This is an asynchronous communication system between the components of the server layer and the chosen implementation is the Redis Message Queue. The main contribution of the message queue is enabling processes such as backend, governor, and data distributor to communciate with each other despite they are completly separate programs. 
+
+The message queue is asynchronous because the originating process can send a message and continue to perform other tasks without waiting for the message to arrive or a reply is received. As oppose to synchronous communication, where the originating process would stop doing any work and waiting for a reply to receive before continuing.
+
+\subsubsection{Async job queue and worker}
+
+The asynchronous job queue is a queue of tasks to be executed in a first in first out fashion, and the worker is a thread that takes a job from the queue in order and actually execute them. The backend is using this mechanism to process lengthy but not time sensitive tasks such as inserting data into the database to improve performance. Similar to the message queue, the originating process adds a job to the queue and it continues to perform other work without waiting for the work to finish. This capability is provided by the Redis Task Queue. 
 
 \subsubsection{Socket}
+
+Socket or websocket is provided by the socket.io library and it is the key to efficient real-time communication between the backend and the frontend. This is the enabling tehcnology...
+
 \subsubsection{Data distributor}
 
 
