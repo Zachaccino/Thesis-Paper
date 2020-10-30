@@ -30,7 +30,8 @@ On the other hand, the microcontroller performs periodic polling, that is, query
 
 
 \newpage
-\section{Composition}
+\section{Component compositions and responsibilities}
+\label{sec:composition}
 
 The proposed system is composed of five layers separated by responsibilities. They are:
 
@@ -44,6 +45,7 @@ The proposed system is composed of five layers separated by responsibilities. Th
 
 The storage layer is responsible for storing the state of the server and sensing data received from the microcontrollers. The server layer is where the data processing logic, system monitoring, and data visualisation services are located. The relay layer contains the 4G infrastructures and providing internet access to 4G enabled devices. The sensing layer is responsible for measuring the data and control the generation of power. Lastly, the simulation layer is used to simulate the behaviours of the sensing layer for benchmarking purposes. Figure \ref{fig:concept2} shows the layers and the components within each layer.
 
+
 \begin{figure}[!ht]
   \includegraphics[width=\linewidth]{c3-concept-2.png}
   \caption{Layers and components of the proposed system.}
@@ -53,46 +55,29 @@ The storage layer is responsible for storing the state of the server and sensing
 
 \subsection{Storage layer}
 
-There are two types of databases being used in the proposed system and each serves a different purpose. The two types are on-disk and in-memory. Figure \ref{fig:composition1} shows the technologies that are being used in this layer.
-
-\begin{figure}[!ht]
-  \includegraphics[width=\linewidth]{c3-composition-1.png}
-  \caption{Technologies used in the storage layer.}
-  \label{fig:composition1}
-\end{figure}
-
 \subsubsection{On-disk database}
 
-The on-disk database used in the proposed system is MongoDB. The distinguishing characteristic of this type of database is the data that are stored in the database is persistant, which means the data remain intact even if the database is down due to failures. It is usually used to store a large amount of data reliably. The downside of using an on-disk database is the response time of querying and inserting data into the database can be very slow. The primary usage in the proposed system is storing the information, status, and sensing data of a device such as a solar panel persistently. 
+The distinguishing characteristic of this type of database is the data that are stored in the database is persistant, which means the data remain intact even if the database is down due to failures. It is usually used to store a large amount of data reliably. The downside of using an on-disk database is the response time of querying and inserting data into the database can be very slow. The primary usage in the proposed system is storing the information, status, and sensing data of a device such as a solar panel persistently. 
 
 \subsubsection{In-memory database}
 
-The in-memory database employed in the proposed system is Redis. The goal for this type of database is not storing the data persistently but aiming to access, modify, and insert data as quick as possible. This advantage is the result of using the memory instead of the disk of the server, which is significantly faster. However, it also comes with the problem of having significantly smaller capacity, and the data is volatile. That is, the data is gone when the database is down and the data may be purged if the memory of the server is running low. This is primarily used to synchronise the state and sharing data between backend instances that are running on the same server. 
+The goal for this type of database is not storing the data persistently but aiming to access, modify, and insert data as quick as possible. This advantage is the result of using the memory instead of the disk of the server, which is significantly faster. However, it also comes with the problem of having significantly smaller capacity, and the data is volatile. That is, the data is gone when the database is down and the data may be purged if the memory of the server is running low. This is primarily used to synchronise the state and sharing data between backend instances that are running on the same server. 
 
-\subsection{Server Layer}
-
-There are many technologies being used in the server layer to process sensing data, monitor the system, and provide data visualisation services, they are shown in the figure \ref{fig:composition2}.
-
-\begin{figure}[!ht]
-  \includegraphics[width=\linewidth]{c3-composition-2.png}
-  \caption{Technologies used in the server layer.}
-  \label{fig:composition2}
-\end{figure}
-
+\subsection{Server layer}
 
 \subsubsection{Backend}
 
-Backend is a stateless HTTP server powered by the Flask framework. Its responsibilities are:
+Backend is a stateless HTTP server and its responsibilities are:
 
 \begin{itemize}
-	\item Providing endpoints for microcontrollers to register itself, insert sensing data to the database, and retrieve issued commands.
-	\item Providing endpoints for frontend to retrieve data for visualisation and notifying a command had been issued.
+	\item Providing application programming interface (API) for microcontrollers to register itself, insert sensing data to the database, and retrieve issued commands.
+	\item Providing API for frontend to retrieve data for visualisation and notifying a command had been issued.
 	\item Providing context-aware load balancing for frontend's real-time data visualisation. 
 \end{itemize}
 
 \subsubsection{Frontend}
 
-Frontend is a web application built on top of the ReactJS framework and utilises socket.io real-time communication system. Its responsibilities are: 
+Frontend is a web application and its responsibilities are: 
 
 \begin{itemize}
 	\item Providing a pleasant and usable user interface.
@@ -102,7 +87,7 @@ Frontend is a web application built on top of the ReactJS framework and utilises
 
 \subsubsection{Load balancer}
 
-The load balancer used in the proposed system is Nginx. It is a piece of software that spawn multiple backend instances and distribute the incoming requests to the backend instance with the least amount of load. It also uses multiple threads to server the frontend web pages to improve the performance under load.
+It is a piece of software that distribute the incoming requests to the backend instance with the least amount of load. It also uses multiple threads to serve the frontend web pages to improve the performance under load.
 
 \subsubsection{Governor}
 
@@ -110,31 +95,280 @@ The governors are daemons for house keeping. That is, they are processes that ar
 
 \subsubsection{Message queue}
 
-This is an asynchronous communication system between the components of the server layer and the chosen implementation is the Redis Message Queue. The main contribution of the message queue is enabling processes such as backend, governor, and data distributor to communciate with each other despite they are completly separate programs. 
+This is an asynchronous communication system between the components of the server layer. The main contribution of the message queue is enabling processes such as backend, governor, and data distributor to communciate with each other despite they are completly separate programs. 
 
 The message queue is asynchronous because the originating process can send a message and continue to perform other tasks without waiting for the message to arrive or a reply is received. As oppose to synchronous communication, where the originating process would stop doing any work and waiting for a reply to receive before continuing.
 
 \subsubsection{Async job queue and worker}
 
-The asynchronous job queue is a queue of tasks to be executed in a first in first out fashion, and the worker is a thread that takes a job from the queue in order and actually execute them. The backend is using this mechanism to process lengthy but not time sensitive tasks such as inserting data into the database to improve performance. Similar to the message queue, the originating process adds a job to the queue and it continues to perform other work without waiting for the work to finish. This capability is provided by the Redis Task Queue. 
+The asynchronous job queue is a queue of tasks to be executed in a first in first out fashion, and the worker is a thread that takes a job from the queue in order and actually execute them. The backend is using this mechanism to process lengthy but not time sensitive tasks such as inserting data into the database to improve performance. Similar to the message queue, the originating process adds a job to the queue and it continues to perform other work without waiting for the work to finish. 
 
 \subsubsection{Socket}
 
-Socket or websocket is provided by the socket.io library and it is the key to efficient real-time communication between the backend and the frontend. This is the enabling tehcnology...
+Socket is the key to efficient real-time communication between the backend and the frontend. This is the enabling tehcnology which allows the frontend to wait for new data to be available as opposed to letting the frontend asking for new data every second, which is very inefficient. 
 
 \subsubsection{Data distributor}
 
+The data distributor sits between the frontend and the backend during the real-time communication. Its purpose is reducing the load of the server by lazy loading the new sensing data at most one time, and publish the data to the frontend instances directly. 
 
+Without the data distributor, the frontend instances would be notified a new data is available, and all frontend instances would query the backend for the same piece of data, causing the backend to be accessed directly proportional to the number of frontend instances. By using the data distributor, it allows the total backend access for each update to be at most one time regardless of the number of frontend instances. 
 
+\subsection{Relay layer}
+
+This layer contains two key infrastructures, the 4G base station, and the internet gateway. The 4G base station allows 4G enabled devices to communicate with it and forward the data to its internet gateway so that devices can access the internet wirelessly. 
+
+\subsection{Sensing layer}
+
+This layer contains power generation devices such as solar panels, power converters, and batteries in our experimental setup. There are also monitoring devices such as sensors that are attached to the input and output of the converter and sends analog signals to the microntroller. Then, the microcontroller process those signals and send the data to the server over the 4G cellular network using the 4G modem. 
+
+\subsection{Simulation layer}
+
+This layer is used for benchmarking as it can generate any number of virtual solar panels and push simulated data to the server. This enables the performance and characteristics of the system to be measured and this layer should behave identical to the sensing layer from the server layer's point of view.
 
 \newpage
 \section{Hardware}
 
-asdfsadfasdfasdfasdf
+The table \ref{tab:hardwareList} outlines the hardware that had been used in the system. Details of each hardware can be found in the subsections below. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{List of hardware in the proposed system.}
+		\label{tab:hardwareList}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Type} & \textbf{Hardware Model}\\
+			\midrule
+			Benchmarking server & Custom Built Desktop (See \autoref{sec:benchmarkingServer})\\
+			Deployment server & AWS EC2 T2-Medium\\
+			Microcontroller & Nuvoton M263A\\
+			4G Modem & Quectel EC25\\
+			4G Antenna & Antenova SRFL029\\
+			4G Base Station & Depending on the service provider\\
+			Gateway & Depending on the service provider\\
+			Converter & Morningstar PS-MPPT-40M\\
+			Sensor & ACS723 and ACS724\\
+			Battery & Sun Xtender PVX-890T\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Benchmarking server}
+\label{sec:benchmarkingServer}
+
+This is the server that is being used to benchmark the proposed communication system. The hardware specification is detailed in the table \ref{tab:benchmarkingHardware}.
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Hardware specification of the benchmarking server.}
+		\label{tab:benchmarkingHardware}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Name} & \textbf{Specification}\\
+			\midrule
+			CPU & AMD Ryzen 3800X (8 Core 16 Threads at 4.3 Ghz)\\
+			GPU & Nvidia GTX 1080Ti\\
+			Memory & 16GB 3200Mhz\\
+			Disk & 4TB HDD + 512GB SSD\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Deployment server}
+
+This is the server that is hosted on the AWS cloud computing platform and it is used to deploy the proposed system so that it can be accessed publically. The hardware specification is detailed in the table \ref{tab:deploymentHardware}. Note that it is not neccessary to deploy the proposed system to a powerful cloud server as there is only one solar panel used for real-world testing. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Hardware specification of the deployment server.}
+		\label{tab:deploymentHardware}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Name} & \textbf{Specification}\\
+			\midrule
+			Instance Type & T2.Medium\\
+			CPU & 2 Cores\\
+			Memory & 4GB\\
+			Disk & 32GB\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+
+\subsection{Microcontroller}
+
+The selected microcontroller is Nuvoton's M263A. The critical features for this microcontroller that are relevant to the proposed system is shown in the table \ref{tab:microcontrollerSpecification}. See figure \ref{fig:m263A} and \ref{fig:m263Aback} for additional details of the microcontroller. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Critical features for Nuvoton M263A}
+		\label{tab:microcontrollerSpecification}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Criteria} & \textbf{Specification}\\
+			\midrule
+			CPU & ARM Cortex M23 64MHz\\
+			APROM Memory & 512KB\\
+			SRAM Memory & 96KB\\
+			LDROM Memory & 4KB\\
+			Has PWM Pins & True\\
+			Has Analog Pins & True\\
+			Has SIM card slot & True\\
+			Has 4G modem support & True\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{figure}[!ht]
+	\includegraphics[width=\linewidth]{M263A.png}
+	\caption{Nuvoton M263A (front) \cite{Nuvoton}}
+	\label{fig:m263A}
+\end{figure}
+
+\begin{figure}[!ht]
+	\includegraphics[width=\linewidth]{M263Aback.png}
+	\caption{Nuvoton M263A (back) \cite{Nuvoton}}
+	\label{fig:m263Aback}
+\end{figure}
+
+\subsection{4G modem}
+
+The selected LTE module is Quectel EC25. The hardware specification is shown in the table \ref{tab:quectelEC25} and the figure \ref{fig:quectelEC25} shows the LTE module. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Hardware specification of Quectel EC25}
+		\label{tab:quectelEC25}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Feature} & \textbf{Specification}\\
+			\midrule
+			Form factor & mini PCIe\\
+			Downlink & 150Mbps\\
+			Uplink & 50Mbps\\
+			Has LTE & Enabled\\ 
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=0.5\linewidth]{ec25.png}
+	\caption{Quectel EC25 \cite{Quectel}}
+	\label{fig:quectelEC25}
+\end{figure}
+
+\subsection{Converter}
+
+The converter used in the real-world testing is the Morningstar PS-MPPT-40M. The hardware specification is outlined in the table \ref{tab:psmppt40m}. Note that the proposed system is designed to be generic such that any converter would work similarly with the system. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Hardware specification of Morningstar PS-MPPT-40M}
+		\label{tab:psmppt40m}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Feature} & \textbf{Specification}\\
+			\midrule
+			Max Battery Current & 40 Amps\\
+			Load Current Rating & 30 Amps\\
+			Nominal Battery Voltage & 12V or 24V\\
+			Peak Efficiency & 98\%\\ 
+			Battery Voltage Range & 10-35 V\\ 
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+
+\subsection{Voltage and current sensor}
+
+There are two sensors that are being used to read the voltage and current. The ACS723 shown in the table \ref{tab:acs723} is used to measure the input voltage and current, while ACS724 shown in the table \ref{tab:acs724} is used to measure the output voltage and current. Note the input voltage and current are referring to the voltage and current of the electricity flowing from the solar panel to the converter, and the output current and voltage are referring to the voltage and current of the electricity flowing from the converter to the battery. Additionally, the proposed system should work with any sensor with analog output as long as the parameters in the microcontroller are properly set.
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Technical specification of ACS723 sensor}
+		\label{tab:acs723}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Characteristic} & \textbf{Specification}\\
+			\midrule
+			Sensitivity & Typ. 400 (mV/A)\\
+			Zero-Current Output Voltage & Typ. VCC * 0.1 (V)\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Technical specification of ACS724 sensor}
+		\label{tab:acs724}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Characteristic} & \textbf{Specification}\\
+			\midrule
+			Sensitivity & Typ. 100 (mV/A)\\
+			Zero-Current Output Voltage & Typ. VCC * 0.5 (V)\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Battery}
+
+The battery model used in the real-world testing is Sun Xtender PVX-890T. The technical specification for the battery is shown in the table \ref{tab:pvx890t}. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Technical specification of Sun Xtender PVX-890T}
+		\label{tab:pvx890t}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Characteristic} & \textbf{Specification}\\
+			\midrule
+			Nominal Voltage & 12 Volt\\
+			Ampere Hour Capacity @ 24 Hour Rate & 89\\
+			Bulk/Absorb Charge & 14.2-14.4 Volts\\
+			Float Charge & 13.2-13.4 Volts\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
 
 \section{Software}
 
-asdfsadfasdfasdfasdf
+The table \ref{tab:softwareList} outlines the software that had been used in the system and their responsibilities are outlined in the \autoref{composition}. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{List of software in the proposed system.}
+		\label{tab:softwareList}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{Component} & \textbf{Software}\\
+			\midrule
+			Benchmarking operating system & Ubuntu Desktop 20.04 LTS\\
+			Deployment operating system & Ubuntu Server 20.04 LTS\\
+			Microcontroller platform & Mbed OS 15.5\\
+			Message queue & RedisMQ\\
+			Job queue and worker & RedisRQ\\
+			Frontend & ReactJS and nivo.rock\\
+			Backend & Python Flask\\
+			Socket & socket.io\\
+			Load Balancer & nginx\\
+			WSGI Server & Gunicorn\\
+			On-disk Database & MongoDB\\
+			In-memory Database & Redis\\
+			Programming language & Python 3.6\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
 
 \section{Cost estimate}
 
