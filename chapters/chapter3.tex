@@ -30,8 +30,8 @@ On the other hand, the microcontroller performs periodic polling, that is, query
 
 
 \newpage
-\section{Component compositions and responsibilities}
-\label{sec:composition}
+\section{Compositions}
+
 
 The proposed system is composed of five layers separated by responsibilities. They are:
 
@@ -52,6 +52,10 @@ The storage layer is responsible for storing the state of the server and sensing
   \label{fig:concept2}
 \end{figure}
 
+\section{Responsibilities}
+\label{sec:responsibilities}
+
+In this section, the responsibilities of each component are described. 
 
 \subsection{Storage layer}
 
@@ -156,11 +160,11 @@ The table \ref{tab:hardwareList} outlines the hardware that had been used in the
 \subsection{Benchmarking server}
 \label{sec:benchmarkingServer}
 
-This is the server that is being used to benchmark the proposed communication system. The hardware specification is detailed in the table \ref{tab:benchmarkingHardware}.
+This is the server that is being used to benchmark the proposed communication system. The technical specification is detailed in the table \ref{tab:benchmarkingHardware}.
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{Hardware specification of the benchmarking server.}
+		\caption{Technical specification of the benchmarking server.}
 		\label{tab:benchmarkingHardware}
 		\begin{tabular}{l|l}
 			\toprule
@@ -177,11 +181,11 @@ This is the server that is being used to benchmark the proposed communication sy
 
 \subsection{Deployment server}
 
-This is the server that is hosted on the AWS cloud computing platform and it is used to deploy the proposed system so that it can be accessed publically. The hardware specification is detailed in the table \ref{tab:deploymentHardware}. Note that it is not neccessary to deploy the proposed system to a powerful cloud server as there is only one solar panel used for real-world testing. 
+This is the server that is hosted on the AWS cloud computing platform and it is used to deploy the proposed system so that it can be accessed publically. The technical specification is detailed in the table \ref{tab:deploymentHardware}. Note that it is not neccessary to deploy the proposed system to a powerful cloud server as there is only one solar panel used for real-world testing. 
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{Hardware specification of the deployment server.}
+		\caption{Technical specification of the deployment server.}
 		\label{tab:deploymentHardware}
 		\begin{tabular}{l|l}
 			\toprule
@@ -203,7 +207,7 @@ The selected microcontroller is Nuvoton's M263A. The critical features for this 
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{Critical features for Nuvoton M263A}
+		\caption{Critical features of Nuvoton M263A}
 		\label{tab:microcontrollerSpecification}
 		\begin{tabular}{l|l}
 			\toprule
@@ -236,11 +240,11 @@ The selected microcontroller is Nuvoton's M263A. The critical features for this 
 
 \subsection{4G modem}
 
-The selected LTE module is Quectel EC25. The hardware specification is shown in the table \ref{tab:quectelEC25} and the figure \ref{fig:quectelEC25} shows the LTE module. 
+The selected LTE module is Quectel EC25. The technical specification is shown in the table \ref{tab:quectelEC25} and the figure \ref{fig:quectelEC25} shows the LTE module. 
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{Hardware specification of Quectel EC25}
+		\caption{Technical specification of Quectel EC25}
 		\label{tab:quectelEC25}
 		\begin{tabular}{l|l}
 			\toprule
@@ -264,11 +268,11 @@ The selected LTE module is Quectel EC25. The hardware specification is shown in 
 
 \subsection{Converter}
 
-The converter used in the real-world testing is the Morningstar PS-MPPT-40M. The hardware specification is outlined in the table \ref{tab:psmppt40m}. Note that the proposed system is designed to be generic such that any converter would work similarly with the system. 
+The converter used in the real-world testing is the Morningstar PS-MPPT-40M. The technical specification is outlined in the table \ref{tab:psmppt40m}. Note that the proposed system is designed to be generic such that any converter would work similarly with the system. 
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{Hardware specification of Morningstar PS-MPPT-40M}
+		\caption{Technical specification of Morningstar PS-MPPT-40M}
 		\label{tab:psmppt40m}
 		\begin{tabular}{l|l}
 			\toprule
@@ -319,6 +323,7 @@ There are two sensors that are being used to read the voltage and current. The A
 	\end{center}
 \end{table}
 
+\newpage
 \subsection{Battery}
 
 The battery model used in the real-world testing is Sun Xtender PVX-890T. The technical specification for the battery is shown in the table \ref{tab:pvx890t}. 
@@ -340,10 +345,9 @@ The battery model used in the real-world testing is Sun Xtender PVX-890T. The te
 	\end{center}
 \end{table}
 
-\newpage
 \section{Software}
 
-The table \ref{tab:softwareList} outlines the software that had been used in the system and their responsibilities are outlined in the \autoref{sec:composition}. 
+The table \ref{tab:softwareList} outlines the software that had been used in the system and their responsibilities are outlined in the \autoref{sec:responsibilities}. 
 
 \begin{table}[h!]
 	\begin{center}
