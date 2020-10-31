@@ -1,6 +1,6 @@
 # Literature Review
 
-There are a few existing solutions and work done by researchers exploring the ways to construct a communication system for monitoring and controlling of the solar panels. They can be separated into three categories: 
+There are a few existing solutions and work done by researchers exploring the ways to construct a communication system for monitoring and controlling of solar panels. They can be separated into three categories: 
 
 1. Wired Communication
 2. Long Range Wireless Communication
