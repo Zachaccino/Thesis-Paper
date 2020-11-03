@@ -109,13 +109,13 @@ The asynchronous job queue is a queue of tasks to be executed in a first in firs
 
 \subsubsection{Socket}
 
-Socket is the key to efficient real-time communication between the backend and the frontend. This is the enabling tehcnology which allows the frontend to wait for new data to be available as opposed to letting the frontend asking for new data every second, which is very inefficient. 
+Socket is the key to efficient real-time communication between the backend and the frontend. This is the enabling tehcnology which allows the frontend to wait for new data to be available as opposed to letting the clients asking for new data every second, which is very inefficient. 
 
 \subsubsection{Data distributor}
 
-The data distributor sits between the frontend and the backend during the real-time communication. Its purpose is reducing the load of the server by lazy loading the new sensing data at most one time, and publish the data to the frontend instances directly. 
+The data distributor sits between the clients and the backend during the real-time communication. Its purpose is reducing the load of the server by publishing the data to the relevant clients directly. 
 
-Without the data distributor, the frontend instances would be notified a new data is available, and all frontend instances would query the backend for the same piece of data, causing the backend to be accessed directly proportional to the number of frontend instances. By using the data distributor, it allows the total backend access for each update to be at most one time regardless of the number of frontend instances. 
+Without the data distributor, the clients would be notified when a new data is available, and all clients would query the backend for the same piece of data, causing the backend to be accessed directly proportional to the number of clients. By using the data distributor, the data is distributed directly to the clients and no backend access is needed. Note that the data distributor also knows what data each client want and only distribute the data to the clients that actually interested in the data. 
 
 \subsection{Relay layer}
 
