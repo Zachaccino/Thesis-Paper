@@ -126,8 +126,23 @@ The process of issuing a command involves the user issuing a command through the
 
 In this section, the composite components shown in the top-level architecture are described in detail. 
 
-\subsection{Remote sensing}
+\subsection{Remote sensing and simmulation}
 \label{sec:remoteSensing}
+\label{sec:simulator}
+
+The figure \ref{fig:sensing} shows the remote sensing composite component is made up of the following low-level components in the experimental setup:
+
+\begin{itemize}
+	\item Solar Panel
+	\item Sensor
+	\item Converter
+	\item Battery
+	\item Microcontroller
+	\item LTE Modem
+	\item Antenna
+\end{itemize}
+
+In the experimental setup, the solar panel generates electricity which is measured by the input sensor and then fed into the converter. After converting the electricity to the desired voltage, it is measured by the output sensor and stored in the battery. Then, the microcontroller reads the analog output from both sensors, computes the current and voltage readings, and pushes new sensing data to the backend through the LTE Modem using HTTP protocols. Additionally, if the commands are received, the microcontroller would send electrical signals to the converter to alter its behaviour.
 
 \begin{figure}[!ht]
 	\centering
@@ -135,6 +150,29 @@ In this section, the composite components shown in the top-level architecture ar
 	\caption{The architecture of the remote sensing composite component.}
 	\label{fig:sensing}
 \end{figure}
+
+
+The low-level components can be varried greatly depending on the use cases, as long as it confronts to the behaviours that the proposed system expects:
+
+\begin{itemize}
+	\item Registering with the backend.
+	\begin{itemize}
+		\item Providing its device ID to the backend on startup, or request a device ID if it doesn't have one. 
+		\item Remembering its assigned device ID given by the backend. 
+	\end{itemize}
+	\item Sending sensing data to the backend.
+	\begin{itemize}
+		\item Current from the power generation device. (Input current)
+		\item Voltage from the power generation device. (Input voltage)
+		\item Current from the power converter. (Output current)
+		\item Voltage from the power converter. (Output voltage)
+	\end{itemize}
+	\item Executing commands.
+	\item Communicating with the backend over HTTP protocols.
+\end{itemize}
+
+A simulator was developed which confronts to the expected behaviours of the proposed system to generate realistic server load for benchmarking. The simulator has the capability to spawn hundreds or thousands of computer processes and each simulating a remote sensing component that is recording data and pushing them to the backend.
+
 
 \subsection{Backend}
 \label{sec:backend}
@@ -167,9 +205,6 @@ In this section, the composite components shown in the top-level architecture ar
 	\label{fig:realtime}
 \end{figure}
 
-\subsection{Simulator}
-\label{sec:simulator}
-sdfsdf
 
 
 
