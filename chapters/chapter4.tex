@@ -177,12 +177,44 @@ A simulator was developed which confronts to the expected behaviours of the prop
 \subsection{Backend}
 \label{sec:backend}
 
+The backend composite component is shown in the figure \ref{fig:backend} and it is consists of the following components:
+\begin{itemize}
+	\item Load Balancer
+	\item Backend Instances
+	\item Job Queue
+	\item Async Worker
+\end{itemize}
+
+
 \begin{figure}[!ht]
 	\centering
 	\includegraphics[width=\linewidth]{c4-backend.png}
 	\caption{The architecture of the backend composite component.}
 	\label{fig:backend}
 \end{figure}
+
+All requests to the backend must go through the load balancer, which distributes the requests evenly to the two backend instances that are actually handling the requests and generating the responses. Among those requests, some of them are not time sensitive\footnote{These are the tasks that doesn't require the result to be available immediately, usually time consuming to execute as well.}. This type of tasks are added to the job queue which allows it to be processed later. Finally, the jobs in the job queue are taken and executed by the async worker in a first in first out manner. 
+
+The figure \ref{fig:asyncworker} shows how a faster response time\footnote{The time it takes from sending the request to receiving the response.} can be achieved using this approach. As shown in the figure, the response time of a request is usually made up of a few components:
+
+\begin{itemize}
+	\item Transmission time from the sender to the backend.
+	\item Processign time of some time sensitive tasks.
+	\item Processign time of some time insensitive tasks.
+	\item Transmission time from the backend to the sender.
+\end{itemize}
+
+Without the async worker, all of these tasks must be executed one after another. That means, the next task can only be executed after the previous task is finished. It's clear that time insensitive tasks which might take a long time to execute can delay the tasks after it. 
+
+With the asyc worker, the response time is drastically reduced as the time insensitive tasks are added to the queue and can be executed later by the async worker. That means, the actual response time of the request no longer includes the time to execute the time insensitive tasks but enqueueing a task to a job queue which is much faster in most cases. 
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{c4-asyncworker.png}
+	\caption{The comparison between using async worker and not.}
+	\label{fig:asyncworker}
+\end{figure}
+
 
 \subsection{Frontend}
 \label{sec:frontend}
