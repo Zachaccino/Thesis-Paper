@@ -177,7 +177,7 @@ A simulator was developed which confronts to the expected behaviours of the prop
 \subsection{Backend}
 \label{sec:backend}
 
-The backend composite component is shown in the figure \ref{fig:backend} and it is consists of the following components:
+The backend composite component is shown in the figure \ref{fig:backend} and consisting of the following components:
 \begin{itemize}
 	\item Load Balancer
 	\item Backend Instances
@@ -193,20 +193,11 @@ The backend composite component is shown in the figure \ref{fig:backend} and it 
 	\label{fig:backend}
 \end{figure}
 
-All requests to the backend must go through the load balancer, which distributes the requests evenly to the two backend instances that are actually handling the requests and generating the responses. Among those requests, some of them are not time sensitive\footnote{These are the tasks that doesn't require the result to be available immediately, usually time consuming to execute as well.}. This type of tasks are added to the job queue which allows it to be processed later. Finally, the jobs in the job queue are taken and executed by the async worker in a first in first out manner. 
+All requests to the backend must go through the load balancer, which distributes the requests evenly to the two backend instances that are actually handling the requests and generating the responses. Among those requests, some of them are time insensitive\footnote{Tasks that we don't have to wait for the result to be availabe before we proceed.}. This type of tasks are added to the job queue which allows them to be processed later. Finally, the jobs in the job queue are taken and executed by the async worker in a first in first out manner. 
 
-The figure \ref{fig:asyncworker} shows how a faster response time\footnote{The time it takes from sending the request to receiving the response.} can be achieved using this approach. As shown in the figure, the response time of a request is usually made up of a few components:
+To understand how this processing mechanism allows more requests to be processed, we need to understand a common metric to measure the performance of a server, the response time. The response time is the time from sending the request to receiving the response. Therefore, the response time can be broken into transmission time and processing time. The transmission time is the time it takes for a request to travel from the sender to the backend and the time it takes for a response to travel from the backend to the sender. The processing time is the time it takes for a request to be processed at the backend. Furthermore, the tasks are either time sensitive\footnote{Tasks that we must wait for the result to be availabe before we proceed.} or insensitive, we can break the processing time into the time it takes to execute time sensitive and insensitive tasks. If the average response time of a request can be reduced, then the backend can process more requests given the same amount of time.
 
-\begin{itemize}
-	\item Transmission time from the sender to the backend.
-	\item Processign time of some time sensitive tasks.
-	\item Processign time of some time insensitive tasks.
-	\item Transmission time from the backend to the sender.
-\end{itemize}
-
-Without the async worker, all of these tasks must be executed one after another. That means, the next task can only be executed after the previous task is finished. It's clear that time insensitive tasks which might take a long time to execute can delay the tasks after it. 
-
-With the asyc worker, the response time is drastically reduced as the time insensitive tasks are added to the queue and can be executed later by the async worker. That means, the actual response time of the request no longer includes the time to execute the time insensitive tasks but enqueueing a task to a job queue which is much faster in most cases. 
+The figure \ref{fig:asyncworker} illustrates the async worker accelarates the response time of a request, which allows the backend to process more requests. Assuming the transmission time, the processing time of time sensitive tasks, and the processing time of time insensitive tasks are identical with and without async worker. Without the async worker, tasks must be executed one after another. Therefore the processing time includes the time to execute time sensitive and insensitive tasks. With the async worker, we can add the time insensitive tasks into the job queue, which allows them to be executed at a later time. This is fine because the result of the time insensitive tasks are not important to processing the requests. Therefore, the processing time includes the time to execute time sensitive tasks and the time to enqueue a task to a job queue. There is no need to wait for the time insensitive tasks to finish and the time to enqueue a task is usually much faster, which allows the request to be processed faster, reduces the response time, and improving the performance of the backend. 
 
 \begin{figure}[!ht]
 	\centering
@@ -215,9 +206,17 @@ With the asyc worker, the response time is drastically reduced as the time insen
 	\label{fig:asyncworker}
 \end{figure}
 
-
 \subsection{Frontend}
 \label{sec:frontend}
+
+The frontend composite component is shown in the figure \ref{fig:frontend} and consisting of the following components:
+\begin{itemize}
+	\item Load Balancer
+	\item Static Web Content
+\end{itemize}
+
+Similar to the backend, all requests must go through the load balancer, and each thread in the load balancer is responsible for retrieving the static web content\footnote{Parts of the website that doesn't change.} and provide it to the client. 
+
 
 \begin{figure}[!ht]
 	\centering
@@ -230,14 +229,39 @@ With the asyc worker, the response time is drastically reduced as the time insen
 \subsection{Real-time}
 \label{sec:realtime}
 
+The real-time composite component is shown in the figure \ref{fig:realtime} and consisting of the following components:
+
+\begin{itemize}
+	\item Data Distributor
+	\item Socket Instances
+\end{itemize}
+
+The data distributor receives data from external sources and distribute (emit) the data to the socket instances. Then, the socket instances send the data to their connected clients in the form of events. 
+
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{c4-realtime.png}
+	\includegraphics[width=\linewidth]{c4-realtime.png}
 	\caption{The architecture of the real-time composite component.}
 	\label{fig:realtime}
 \end{figure}
 
+To make it more efficient, the data distributor distributes the data to the socket instance if and only if the socket instance needs it. This is done by keeping track of what data that each socket instance needs. For example, in the scenario which is shown in the figure \ref{fig:rtscenario1}, when a client is connected to the socket instance 1, the client says it wants to receive data generated by the solar panel A. Then, the socket instance 1 notifies the data distributor through a connection tracking synchronisation request. The synchronisation reqeust tells the data distributor that the client on the socket instance 1 wants to receive sensing data from the solar panel A when it is available. Therefore, the data distributor knows if the socket needs a certain piece of data and send it to the socket. 
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{c4-rtscenario1.png}
+	\caption{The data distributor innerworkings after clients connected.}
+	\label{fig:rtscenario1}
+\end{figure}
 
 
+If the client is disconnected, the socket would send another connection tracking synchronisation request to the data distributor and notifying this client no longer needs the data. This scenario is shown in the figure \ref{fig:rtscenario2}. 
+ 
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{c4-rtscenario2.png}
+	\caption{The data distributor innerworkings after clients disconnected.}
+	\label{fig:rtscenario2}
+\end{figure}
 
 \end{document}
