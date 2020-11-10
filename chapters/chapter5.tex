@@ -17,6 +17,19 @@ The hardware used for benchmarking is detailed in \autoref{sec:benchmarkingServe
 	\item Hardware Virtualisation Enabled
 \end{itemize}
 
+To observe the performance characteristics of the proposed system with horizontal scalling, additional hardwares used for horizontal scalling benchmarking are listed below:
+\begin{itemize}
+	\item MacBook Pro 16 2019
+		\begin{itemize}
+			\item 8 Core 16 Threads
+		\end{itemize}
+	\item HP Envy dv6 2013
+		\begin{itemize}
+			\item 4 Core 8 Threads
+		\end{itemize}
+\end{itemize}
+
+
 The software used for benchmarking is detailed in \autoref{sec:software} and the critical tehcnical specifications are:
 \begin{itemize}
 	\item Ubuntu 20.04
@@ -34,12 +47,13 @@ The components of the proposed system are deployed to the benchmarking server us
 
 \section{Procedures}
 
-\subsection{System Configurations}
-A set of configurations listed in the table \ref{tab:sysconfbench} are used to observe the performance characteristics under various loads. All configurations in this table is used on the benchmarking server and no additional computation resources are offered by external servers. 
+\subsection{Limited Computational Resources}
+The configurations listed in the table \ref{tab:lowsysconfbench} are used to observe the behaviours of the proposed system with limited computation resources that is comparable to a modern laptop.
+
 \begin{table}[h!]
 	\begin{center}
-		\caption{A set of system configurations used for performance benchmarking.}
-		\label{tab:sysconfbench}
+		\caption{A set of system configurations used for performance benchmarking with limited computational resources.}
+		\label{tab:lowsysconfbench}
 		\begin{tabular}{l|l|l}
 			\toprule
 			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
@@ -47,39 +61,50 @@ A set of configurations listed in the table \ref{tab:sysconfbench} are used to o
 			4 & 4 & 50\\
 			4 & 4 & 100\\
 			4 & 4 & 200\\
-			4 & 12 & 50\\
-			4 & 12 & 100\\
-			4 & 12 & 200\\
-			4 & 12 & 50\\
-			4 & 12 & 100\\
-			4 & 12 & 200\\
-			12 & 12 & 50\\
-			12 & 12 & 100\\
-			12 & 12 & 200\\
-			12 & 12 & 500\\
 			\bottomrule
 		\end{tabular}
 	\end{center}
 \end{table}
 
-The proposed system is also designed to scale, the table \ref{tab:scalebench} shows the configurations used for benchmarking where there are three physically separated servers contributing to executing the tasks at the same time. The computation resources provided by the servers are listed below:
+\subsection{Reasonable Computational Resources}
 
-\begin{itemize}
-	\item Benchmarking Server (8 Core 16 Threads)
-	\begin{itemize}
-		\item 4 threads for backend instances.
-		\item 12 threads for async workers.
-	\end{itemize}
-	\item MacBook Pro 16 (8 Core 16 Threads)
-	\begin{itemize}
-		\item 16 threads for async workers.
-	\end{itemize}
-	\item HP Envy dv6 (4 Core 8 Threads)
-	\begin{itemize}
-		\item 8 threads for async workers.
-	\end{itemize}
-\end{itemize}
+The configurations listed in the table \ref{tab:highsysconfbench} are used to observe the behaviours of the proposed system with reasonable computation resources that is comparable to a high performance consumer grade desktop computer system.
 
+\begin{table}[h!]
+	\begin{center}
+		\caption{A set of system configurations used for performance benchmarking with reasonable computational resources.}
+		\label{tab:highsysconfbench}
+		\begin{tabular}{l|l|l}
+			\toprule
+			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
+			\midrule
+			4 & 12 & 50\\
+			4 & 12 & 100\\
+			4 & 12 & 200\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Horizontal Scalling}
+
+The proposed system is designed to scale, that is, having the capability of running multiple instances on multiple servers to distribute the load. The table \ref{tab:scalebench} shows the configurations used for benchmarking where there are three physically separated servers contributing to executing the tasks at the same time. The computation resources provided by the servers are shown in the table \ref{tab:computecontrib}
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{Contribution to computational resources.}
+		\label{tab:computecontrib}
+		\begin{tabular}{l|l|l|l}
+			\toprule
+			\textbf{Server} & \textbf{Threads} & \textbf{No. Backend} & \textbf{No. Workers}\\
+			\midrule
+			Benchmarking Server & 16 & 4 & 12\\
+			MacBook Pro 16 2019 & 16 & 0 & 16\\
+			HP Envy dv6 2013 & 8 & 0 & 8\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
 
 \begin{table}[h!]
 	\begin{center}
@@ -98,13 +123,18 @@ The proposed system is also designed to scale, the table \ref{tab:scalebench} sh
 	\end{center}
 \end{table}
 
-\subsection{Generating Loads and Measuring}
+\subsection{Generating Loads}
 
-The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for 100 times to create sustained load. 
+The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for a total of 100 iterations to create a sustained load.
 
-To quantify the performance, the response time of each request is measured and recorded. Once every device has finished sending data, the response time for each iteration of requests is averaged across the devices\footnote{The resulting data is the average response time for the first request, the second request... So on and so forth.}. 
+\subsection{Measuring Response Time}
+
+To quantify the performance, the response time of each request is measured and recorded. Once a simulated device has finished sending data, the response time for each iteration is saved to a CSV (Comma Seperated Values) file. Once all simulated devices have finished sending data, the average response time for each iteration is calculated and saved to another CSV file.
 
 \section{Analysis}
 
+\subsection{Limited Computational Resources}
+\subsection{Reasonable Computational Resources}
+\subsection{Horizontal Scalling}
 
 \end{document}
