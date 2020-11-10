@@ -4,16 +4,107 @@
 
 \chapter{Benchmark}
 
+\section{Aim}
+The aim for benchmarking is understanding the performance characteristics of the proposed system under various loads and system configurations.
+
 \section{Setup}
+
+The hardware used for benchmarking is detailed in \autoref{sec:benchmarkingServer} and the critical technical specifications that affect the performance of the system are:
+\begin{itemize}
+	\item 8 Core 16 Threads
+	\item 4.3 Ghz Clock Speed
+	\item 32 GB Memory
+	\item Hardware Virtualisation Enabled
+\end{itemize}
+
+The software used for benchmarking is detailed in \autoref{sec:software} and the critical tehcnical specifications are:
+\begin{itemize}
+	\item Ubuntu 20.04
+	\item Docker Engine Enabled
+\end{itemize}
+
+Additionally, the proposed system have two configrations that can be tweaked to show how the performance can be impacted:
+
+\begin{itemize}
+	\item Number of backend instances
+	\item Number of async workers
+\end{itemize}
+
+The components of the proposed system are deployed to the benchmarking server using Docker Containers\footnote{A container virtualisation method, which allows the components to be run in an isolated environment that is always identical regardless of the environments of the server.} to manage the runtime dependencies. Note that this method of deployment have minimal impact of the performance of system. 
 
 \section{Procedures}
 
+\subsection{System Configurations}
+A set of configurations listed in the table \ref{tab:sysconfbench} are used to observe the performance characteristics under various loads. All configurations in this table is used on the benchmarking server and no additional computation resources are offered by external servers. 
+\begin{table}[h!]
+	\begin{center}
+		\caption{A set of system configurations used for performance benchmarking.}
+		\label{tab:sysconfbench}
+		\begin{tabular}{l|l|l}
+			\toprule
+			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
+			\midrule
+			4 & 4 & 50\\
+			4 & 4 & 100\\
+			4 & 4 & 200\\
+			4 & 12 & 50\\
+			4 & 12 & 100\\
+			4 & 12 & 200\\
+			4 & 12 & 50\\
+			4 & 12 & 100\\
+			4 & 12 & 200\\
+			12 & 12 & 50\\
+			12 & 12 & 100\\
+			12 & 12 & 200\\
+			12 & 12 & 500\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+The proposed system is also designed to scale, the table \ref{tab:scalebench} shows the configurations used for benchmarking where there are three physically separated servers contributing to executing the tasks at the same time. The computation resources provided by the servers are listed below:
+
+\begin{itemize}
+	\item Benchmarking Server (8 Core 16 Threads)
+	\begin{itemize}
+		\item 4 threads for backend instances.
+		\item 12 threads for async workers.
+	\end{itemize}
+	\item MacBook Pro 16 (8 Core 16 Threads)
+	\begin{itemize}
+		\item 16 threads for async workers.
+	\end{itemize}
+	\item HP Envy dv6 (4 Core 8 Threads)
+	\begin{itemize}
+		\item 8 threads for async workers.
+	\end{itemize}
+\end{itemize}
+
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{A set of system configurations used for scalability benchmarking.}
+		\label{tab:scalebench}
+		\begin{tabular}{l|l|l}
+			\toprule
+			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
+			\midrule
+			4 & 12 + 8 + 16 & 100\\
+			4 & 12 + 8 + 16 & 200\\
+			4 & 12 + 8 + 16 & 500\\
+			4 & 12 + 8 + 16 & 1000\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\subsection{Generating Loads and Measuring}
+
+The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for 100 times to create sustained load. 
+
+To quantify the performance, the response time of each request is measured and recorded. Once every device has finished sending data, the response time for each iteration of requests is averaged across the devices\footnote{The resulting data is the average response time for the first request, the second request... So on and so forth.}. 
+
 \section{Analysis}
 
-
-
-\section{Server Response Time}
-
-\section{Server Throughput}
 
 \end{document}
