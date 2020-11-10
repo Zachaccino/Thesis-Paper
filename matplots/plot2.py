@@ -1,10 +1,10 @@
-# 4 Backend 4 Worker
+# 4 Backend 12 Worker
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-f = open("./data/4-4/50.csv", "r")
+f = open("./data/4-12/50.csv", "r")
 csv50 = f.readlines()
 csv50.pop(0)
 data50 = []
@@ -16,7 +16,7 @@ for i, l in enumerate(csv50):
     data50.append(int(l.split(",")[1]))
 
 
-f = open("./data/4-4/100.csv", "r")
+f = open("./data/4-12/100.csv", "r")
 csv100 = f.readlines()
 csv100.pop(0)
 data100 = []
@@ -26,7 +26,7 @@ for l in csv100:
     data100.append(int(l.split(",")[1]))
 
 
-f = open("./data/4-4/200.csv", "r")
+f = open("./data/4-12/200.csv", "r")
 csv200 = f.readlines()
 csv200.pop(0)
 data200 = []
