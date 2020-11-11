@@ -30,7 +30,7 @@ To observe the performance characteristics of the proposed system with horizonta
 \end{itemize}
 
 
-The software used for benchmarking is detailed in \autoref{sec:software} and the critical tehcnical specifications are:
+The software used for benchmarking is detailed in \autoref{sec:software} and the critical technical specifications are:
 \begin{itemize}
 	\item Ubuntu 20.04
 	\item Docker Engine Enabled
@@ -78,7 +78,6 @@ The configurations listed in the table \ref{tab:highsysconfbench} are used to ob
 			\toprule
 			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
 			\midrule
-			4 & 12 & 50\\
 			4 & 12 & 100\\
 			4 & 12 & 200\\
 			\bottomrule
@@ -98,8 +97,8 @@ The proposed system is designed to scale, that is, having the capability of runn
 			\toprule
 			\textbf{Server} & \textbf{Threads} & \textbf{No. Backend} & \textbf{No. Workers}\\
 			\midrule
-			Benchmarking Server & 16 & 4 & 12\\
-			MacBook Pro 16 2019 & 16 & 0 & 16\\
+			Benchmarking Server & 16 & 8 & 8\\
+			MacBook Pro 16 2019 & 16 & 0 & 8\\
 			HP Envy dv6 2013 & 8 & 0 & 8\\
 			\bottomrule
 		\end{tabular}
@@ -114,10 +113,8 @@ The proposed system is designed to scale, that is, having the capability of runn
 			\toprule
 			\textbf{No. Backend Instances} & \textbf{No. Async Workers} & \textbf{No. Devices}\\
 			\midrule
-			4 & 12 + 8 + 16 & 100\\
-			4 & 12 + 8 + 16 & 200\\
-			4 & 12 + 8 + 16 & 500\\
-			4 & 12 + 8 + 16 & 1000\\
+			4 & 8 + 8 + 8 & 200\\
+			4 & 8 + 8 + 8 & 500\\
 			\bottomrule
 		\end{tabular}
 	\end{center}
@@ -125,90 +122,186 @@ The proposed system is designed to scale, that is, having the capability of runn
 
 \subsection{Generating Loads}
 
-The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for a total of 100 iterations to create a sustained load.
+The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for a total of 500 iterations\footnote{One iteration means sending data to the backend one time.} to create a sustained load. 
+
+To verify the simulator is performing normally, that is, the simulator is generating the expected sustained load. A timer is used to verify if the simulator terminates within the expected time interval. In the benchmarking, the timer is set to 8.3 minutes\footnote{500 Requests / 60 Requests Per Minute = 8.3 Minutes}. This is because when the total number of reqeusts are the same, then terminating later than expected means the number of requests per minute is lower the expected value, which means a lighter load is generated. This can be an indication of the number of simulated devices are beyond the the capability of the benchmarking server. In which case, the result is discarded. 
+
 
 \subsection{Measuring Performance}
 
 To quantify the performance, the response time of each request is measured and recorded. Once a simulated device has finished sending data, the response time for each iteration is saved to a CSV (Comma Seperated Values) file. Once all simulated devices have finished sending data, the average response time for each iteration across all simulated devices is calculated and saved to another CSV file. This is used to determine how well the backend handles various loads.
 
-Note the performance of the backend can be determined by measuring the response time. However, the performance of the clients is hard to measure accuratly because the originating server may have different time as the client and the network delay also plays a big factor in the response time of the data update. Thus, the performance of the clients is determined subjectively, which is if the data is updated noticably slower than expected. 
+The monitoring delay is the time it takes from recording the data in the sensing device, to showing the data on the client. In the benchmarking, the delay can be measured by the time duration between the termination of the last simulated device, and receiving the last data update. If the last simulated device terminated at around the same time as the last data update, then the system is keeping up with the load. If the last data update is received significantly later than the termination of the last simulated device, then it must indicates the system cannot keep up with the number of data updates. 
 
 \section{Analysis}
 
 \subsection{Limited Computational Resources}
 
-The average response time under different loads with limited computational resources is shown in the table \ref{tab:avg4-4}. From the table, it is clear the given loads did not saturate the backend since the response time for each load is considered very short. 
+The average response time under different loads with limited computational resources is shown in the table \ref{tab:avg4-4}. From the table, it is clear the given loads did not saturate the backend since the response time for each load is considered very short. It is worth noting the response time slightly increases as the number of devices increases, which is expected.
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{The average response time for the 4 backend and 4 async worker configuration.}
+		\caption{The average response time for the 4 backends and 4 async workers configuration.}
 		\label{tab:avg4-4}
 		\begin{tabular}{l|l}
 			\toprule
 			\textbf{No. Devs} & \textbf{Average Response Time}\\
 			\midrule
-			50 & 4.1 milliseconds\\
-			100 & 4.89 milliseconds\\
-			200 & 5.6 milliseconds\\
+			50 & 4.03 milliseconds\\
+			100 & 4.87 milliseconds\\
+			200 & 5.26 milliseconds\\
 			\bottomrule
 		\end{tabular}
 	\end{center}
 \end{table}
 
-The preceived monitoring delay\footnote{The time it takes from the data is recorded in the sensing device, to the data is shown on the client.} with limited computational resources is shown in the table \ref{tab:delay4-4}. There is no preceivable delays for 50 and 100 devices. However, 200 devices introduced a significant monitoring delay of up to three minutes. That means, it takes three minutes for a data to show up on the client since it is recorded at the sensing device. We also know the fact that the backend is no where near its saturation point with a load generated by 200 devices. The only possible bottlenecks here is the four async workers are struggling to process 200 data insertion requests per second, because the data insertion requests are handled by the async workers, not the backend itself, as inserting data into the database is considered time insensitive in this scenario. Additionally, the data updates are only generated until the async worker successfully insert the data into the database, which explains the significant delay in receiving updates at the clients. 
+The monitoring delay with limited computational resources is shown in the table \ref{tab:delay4-4}. There is no delay for the load of 50 devices. However, the load of 100 devices introduced a 4 minutes delay and the the load of 200 devices introduced a 16 minutes delay. That means, it takes minutes for new data to show up on the client after it is recorded at the sensing device. Considering the fact that the backend is no where near its saturation point as evidenced by the short response time. The only bottleneck is the four async workers are struggling to process the amount of data insertion requests in the job queue. This is because the data insertion requests are handled by the async workers, not the backend itself, as inserting data into the database is considered time insensitive in this scenario. Additionally, the data updates are only generated until the async worker successfully insert the data into the database, which explains the significant delay in receiving updates at the clients. 
 
 \begin{table}[h!]
 	\begin{center}
-		\caption{The preceived monitoring delay for the 4 backend and 4 async worker configuration.}
+		\caption{The monitoring delay for the 4 backends and 4 async workers configuration.}
 		\label{tab:delay4-4}
 		\begin{tabular}{l|l}
 			\toprule
-			\textbf{No. Devs} & \textbf{Preceived delay}\\
+			\textbf{No. Devs} & \textbf{Delay}\\
 			\midrule
 			50 & No delay \\
-			100 & No delay\\
-			200 & Delayed up to 3 mins\\
+			100 & 4 Mins\\
+			200 & 16 Mins\\
 			\bottomrule
 		\end{tabular}
 	\end{center}
 \end{table}
 
-The figure \ref{fig:4-4} shows the response time for each iteration under different load scenarios. The figure suggests there is no positive or negative associations between the response time and the number of iterations. That means the response time is expected to stay at the same level regardless of the number of iterations and showing no signs of performance degradation. 
+The figure \ref{fig:4-4} shows the response time for each iteration under different load scenarios. The figure suggests there is no positive or negative associations between the response time and the number of iterations. That means the response time is expected to stay at the same level as the number of iterations approaches infinite. 
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{4-4.png}
-	\caption{The response time for each iteration using the 4 backend and 4 async worker configuration.}
+	\includegraphics[width=\linewidth]{4-4.png}
+	\caption{The response time for each iteration using the 4 backends and 4 async workers configuration.}
 	\label{fig:4-4}
 \end{figure}
 
-With the evidences presented above, the 4 backend and 4 async worker configuration is expected to serve around 100 devices for a long period of time without introducing delays or significant performance degredation. 
+With the evidences presented above, the 4 backends and 4 async workers configuration, which is comparable to the performance of a laptop, is expected to serve around 50 devices for a long period of time without introducing delays or significant performance degredation. Since 4 async workers are bottlenecking the system, then increasing number of async workers should improve the performance significantly, which is discussed in the \autoref{sec:reasonable} where 8 additional workers are added to the system. 
 
 \subsection{Reasonable Computational Resources}
+\label{sec:reasonable}
+The average response time under different loads with reasonable computational resources is shown in the table \ref{tab:avg4-12}. The response time of the backend with resonable computational resources performs similarly to the backend with limited computational resources. They are considered short and shows no sign of saturating the throughput of the backend. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{The average response time for the 4 backends and 12 async workers configuration.}
+		\label{tab:avg4-12}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{No. Devs} & \textbf{Average Response Time}\\
+			\midrule
+			100 & 4.46 milliseconds\\
+			200 & 7.75 milliseconds\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+The delay tells a very different story, which is shown in the table \ref{tab:delay4-12}. There is no longer any delay with 100 devices, which is improved by 4 minutes. The 16 minutes delay with 200 devices is reduce to 5 minutes. The significant improvements are coming from the additional 8 workers performing data insertion requests in parallel. The total of 12 async workers are able to process a lot more requests than the 4 async workers, thus keeping up with the load generated by the 100 devices. However, the 12 async workers are still not processing the data insertion requests fast enough causing a significant delay with 200 devices. More importantly, the available computational resources on the benchmarking server is fully occupied and no more usable resources can be allocated in executing the data insertion requests from the benchmarking server. Fortunatly, the solution to this problem is using a technique called horizontal scalling, which is discussed in \autoref{sec:horizontal}. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{The monitoring delay for the 4 backends and 12 async workers configuration.}
+		\label{tab:delay4-12}
+		\begin{tabular}{l|l|l}
+			\toprule
+			\textbf{No. Devs} & \textbf{Delay} & \textbf{Improvement}\\
+			\midrule
+			100 & No delays & 4 Mins	\\
+			200 & 5 Mins & 11 Mins\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+The figure \ref{fig:4-12} shows the response time for each iteration under different load scenarios. Similar to before, there is no signs that indicates the response time will increase nor decrease as the number of iterations increases. Which means the response time is likely to stay at the same level as the number of iterations approaches infinite. An interesting observation in the figure is the periodic fluctuations in the response time which happens every 60 to 80 iterations. More discussion about the fluctuations and probable causes can be found in \autoref{sec:horizontal}.
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{4-12.png}
+	\includegraphics[width=\linewidth]{4-12.png}
 	\caption{The response time for each iteration using the 4 backend and 12 async worker configuration.}
 	\label{fig:4-12}
 \end{figure}
 
+In summary, the additional 8 workers improved the performance of the server significantly by removing bottlenecks. The system with reasonable computational resources that is comparable to a high end consumer grade desktop computer is capable of serving 100 devices gracefully. However, the bottleneck still exists and more async workers are needed to handle the demanding situations. 
+
 \subsection{Horizontal Scalling}
+\label{sec:horizontal}
+
+The horizontal scalling enables separate servers contributing to the processing of requests. The average response time under different loads with light horizontal scalling is shown in the table \ref{tab:avg8-24}. The load from 200 devices is still being handled gracefully with an increase in 4 extra backend instances, as expected. However, the load from 500 devices overwhelms some parts of the system as evidenced by the unusually long response time. As we will discover in the later discussion, the potential bottlenecking is not likely to be the backend but the job queue. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{The average response time for the 8 backends and 24 async workers configuration.}
+		\label{tab:avg8-24}
+		\begin{tabular}{l|l}
+			\toprule
+			\textbf{No. Devs} & \textbf{Average Response Time}\\
+			\midrule
+			200 & 6.31 milliseconds\\
+			500 & 178.66 milliseconds\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+The table \ref{tab:delay8-24} shows the delays with various load scenarios. The good news is a total of 16 async workers had been able to keep up with the load from 200 devices. The significances of the 16 async workers are they are not coming from the same server. Instead, they are running on three physically separated servers, and interact and distribute loads with each other through the internet. This implies the proposed system can be easily scale up and down depending on the number of panels that are being monitored. Unfortunately, the 16 async workers are still not fast enough to keep up with the load from 500 devices with a significant 11 minutes delay. 
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{The monitoring delay for the 8 backends and 24 async workers configuration.}
+		\label{tab:delay8-24}
+		\begin{tabular}{l|l|l}
+			\toprule
+			\textbf{No. Devs} & \textbf{Delay} & \textbf{Improvement}\\
+			\midrule
+			200 & No delays & 5 Mins	\\
+			500 & 11 Mins & N/A\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+The figure \ref{fig:8-24} shows the response time for each iteration under different load scenarios. The fluctuations that we discovered in the previous section is much more significant under a much larger load. There are only two possible entities that may cause the periodic fluctuations.
+
+\begin{itemize}
+	\item Backend Instances.
+	\item Job Queue.
+\end{itemize}
+
+It is very unlikely for backend instances to cause this type of periodic fluctuations. In the figure \ref{fig:w-4-12-24}, the response time for each iteration under the load of 200 devices with different configurations are shown. Under the same amount of load and the same amount of backend instances,  the expected amplitude of the fluctuation should be similar as the rate of access is the same. However, we observed the amplitude of the fluctuation is significantly different between the 4 backends 4 workers configuration and the 4 backends 12 workers configuration. The difference between the two configurations is the utilisation of the computer resources. The first configuration uses a total of 8 threads to process requests while the remaining 8 threads are processing other less demanding tasks, whereas the second configuration uses all 16 threads to process the requests. 
+
+The 8 threads that are processing other tasks is likely the key to understand the cause of the fluctuations. When all 16 threads are processing the requests, the job queue and the databases are forced to use less computational resources. Which means their performance can be greatly impacted and causes larger fluctuations in the 4 backends 12 workers configuration. Another evidence that support this idea is the 8 backends 24 workers configuration where 8 threads are used for backend requests and 8 threads from the same server is processing the data insertion requests. Since the backend instances typically uses less resouces than the workers, the 8 backends 24 workers configuration actually allows the job queue and databases using slightly more resources than the 4 backends 12 workers configuration. The figure \ref{fig:w-4-12-24} shows the amplitude is also lower for 8 backends 24 workers configuration but not as low as the 4 backends 4 workers configuration where there are 8 dedicated threads for the job queue and databases. Further confirming the idea of the job queue is causing the fluctuations. 
+
+Since the relevant code only involves the job queue, it is clear that the fluctuation is very likely to be caused by the job queue under the impact of limited computational resources being allocated to it. The job queue is most likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more spaces to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has low response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free spaces to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{4-36.png}
-	\caption{The response time for each iteration using the 4 backend and 12 + 8 + 16 async worker configuration.}
-	\label{fig:4-36}
+	\includegraphics[width=\linewidth]{8-24.png}
+	\caption{The response time for each iteration using the 4 backend and 8 + 8 + 8 async worker configuration.}
+	\label{fig:8-24}
 \end{figure}
 
 \begin{figure}[!ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{w-4-12-36.png}
-	\caption{The response time for each iteration for 200 devices in 4, 12, and 36 workers configuration.}
-	\label{fig:w-4-12-36}
+	\includegraphics[width=\linewidth]{w-4-12-24.png}
+	\caption{The response time for each iteration with 200 devices in all configurations.}
+	\label{fig:w-4-12-24}
 \end{figure}
 
+\subsection{Conclusion}
 
+From the benchmarking, a few performance characteristics is discovered with regards to the proposed system. 
+
+\begin{itemize}
+	\item Scalable
+	\item Performance 
+\end{itemize}
 
 \end{document}
