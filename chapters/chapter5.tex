@@ -268,25 +268,9 @@ The table \ref{tab:delay8-24} shows the delays with various load scenarios. The 
 	\end{center}
 \end{table}
 
-The figure \ref{fig:8-24} shows the response time for each iteration under different load scenarios. The fluctuations that we discovered in the previous section is much more significant under a much larger load. There are only two possible entities that may cause the periodic fluctuations.
 
-\begin{itemize}
-	\item Backend Instances.
-	\item Job Queue.
-\end{itemize}
 
-It is very unlikely for backend instances to cause this type of periodic fluctuations. In the figure \ref{fig:w-4-12-24}, the response time for each iteration under the load of 200 devices with different configurations are shown. Under the same amount of load and the same amount of backend instances,  the expected amplitude of the fluctuation should be similar as the rate of access is the same. However, we observed the amplitude of the fluctuation is significantly different between the 4 backends 4 workers configuration and the 4 backends 12 workers configuration. The difference between the two configurations is the utilisation of the computer resources. The first configuration uses a total of 8 threads to process requests while the remaining 8 threads are processing other less demanding tasks, whereas the second configuration uses all 16 threads to process the requests. 
-
-The 8 threads that are processing other tasks is likely the key to understand the cause of the fluctuations. When all 16 threads are processing the requests, the job queue and the databases are forced to use less computational resources. Which means their performance can be greatly impacted and causes larger fluctuations in the 4 backends 12 workers configuration. Another evidence that support this idea is the 8 backends 24 workers configuration where 8 threads are used for backend requests and 8 threads from the same server is processing the data insertion requests. Since the backend instances typically uses less resouces than the workers, the 8 backends 24 workers configuration actually allows the job queue and databases using slightly more resources than the 4 backends 12 workers configuration. The figure \ref{fig:w-4-12-24} shows the amplitude is also lower for 8 backends 24 workers configuration but not as low as the 4 backends 4 workers configuration where there are 8 dedicated threads for the job queue and databases. Further confirming the idea of the job queue is causing the fluctuations. 
-
-Since the relevant code only involves the job queue, it is clear that the fluctuation is very likely to be caused by the job queue under the impact of limited computational resources being allocated to it. The job queue is most likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more spaces to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has low response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free spaces to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
-
-\begin{figure}[!ht]
-	\centering
-	\includegraphics[width=\linewidth]{8-24.png}
-	\caption{The response time for each iteration using the 4 backend and 8 + 8 + 8 async worker configuration.}
-	\label{fig:8-24}
-\end{figure}
+In the figure \ref{fig:w-4-12-24}, the response time for each iteration under the load of 200 devices with different configurations are shown. Under the same amount of load and the same amount of backend instances, the 4-4 (4 Backend 4 Workers) configuration have much smaller fluctuations than the 4-12 (4 backends 12 workers) configuration. The only difference is the 4-4 configuration have 8 threads that are free to be utilised by the job queue and databases, whereas the 4-12 configuration have no dedicated threads for the job queue and databases. Since the number of backend instances remain the same but the fluctuation is reduced by having dedicated threads for job queue and databases, it suggests the performance of the job queue and databases is severely impacted by the limtited computational resources in the 4-12 configuration. 
 
 \begin{figure}[!ht]
 	\centering
@@ -295,9 +279,42 @@ Since the relevant code only involves the job queue, it is clear that the fluctu
 	\label{fig:w-4-12-24}
 \end{figure}
 
+
+The figure \ref{fig:8-24} shows the response time for each iteration under different load scenarios. The fluctuations of the response time under the load of 500 devices can be as long as 380 milliseconds. This is an indication of a bottleneck exists in the system. Considering the fact that the fluctuations is caused by the job queue and databases not having enough computational resources to keep up with the demand. The bottleneck is likely to be resolved by giving the job queue and database more computational resources such as dedicated threads.
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{8-24.png}
+	\caption{The response time for each iteration using the 4 backend and 8 + 8 + 8 async worker configuration.}
+	\label{fig:8-24}
+\end{figure}
+
+The figure \ref{fig:jq-bottle} shows the results of different attepmts at minimising the bottlenecks. The response time is measured by simulating 300 devices making 100 requests each.  The 2 free threads with 1 job queue configuration is the baseline performance, and it is the same configuration that we used above. With this configuration, The peak response time reaches 160 milliseconds, which is very slow. The first attempt is increasing the number of job queues from one to two, so that the load is distributed over two separate job queues. The effect of using more job queues is it greatly improvs the peak response time, and takes longer to reach the peak response time. However, the response time can still be around 100 milliseconds when the queues are nearing its full capacity. The second attempt is increasing the amount of dedicated threads that can be utilised by the job queue from 2 to 4. 
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{jq-bottle.png}
+	\caption{The response time for each iteration with different job queue scaling and avaliable resources.}
+	\label{fig:jq-bottle}
+\end{figure}
+
+
+The fluctuation is very likely to be caused by the job queue under the impact of limited computational resources being allocated to it. The job queue is most likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more spaces to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has low response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free spaces to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
+
+
+
+
+
+
+
 \subsection{Conclusion}
 
-From the benchmarking, a few performance characteristics is discovered with regards to the proposed system. 
+
+
+\begin{itemize}
+	\item 50 devices with 4 backends 4 workers configuration.
+	\item 100 Devices with 
+\end{itemize}
 
 \begin{itemize}
 	\item Scalable
