@@ -4,26 +4,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-f = open("./data/4-12/50.csv", "r")
-csv50 = f.readlines()
-csv50.pop(0)
-data50 = []
-iteration = []
-f.close()
-
-for i, l in enumerate(csv50):
-    iteration.append(i)
-    data50.append(int(l.split(",")[1]))
-
 
 f = open("./data/4-12/100.csv", "r")
 csv100 = f.readlines()
 csv100.pop(0)
 data100 = []
+iteration = []
 f.close()
 
-for l in csv100:
+for i, l in enumerate(csv100):
+    iteration.append(i)
     data100.append(int(l.split(",")[1]))
+
+print("AVG: 100 Devs", round(sum(data100)/len(data100),2))
 
 
 f = open("./data/4-12/200.csv", "r")
@@ -35,7 +28,8 @@ f.close()
 for l in csv200:
     data200.append(int(l.split(",")[1]))
 
-plt.plot(iteration, data50, label='50 Devices')
+print("AVG: 200 Devs", round(sum(data200)/len(data200),2))
+
 plt.plot(iteration, data100, label='100 Devices')
 plt.plot(iteration, data200, label='200 Devices')
 

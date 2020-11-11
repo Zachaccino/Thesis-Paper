@@ -26,7 +26,7 @@ for l in csv12:
     data12.append(int(l.split(",")[1]))
 
 
-f = open("./data/4-36/200.csv", "r")
+f = open("./data/8-24/200.csv", "r")
 csv36 = f.readlines()
 csv36.pop(0)
 data36 = []
@@ -36,9 +36,9 @@ for l in csv36:
     data36.append(int(l.split(",")[1]))
 
 
-plt.plot(iteration, data4, label='4 Workers')
-plt.plot(iteration, data12, label='12 Workers')
-plt.plot(iteration, data36, label='36 Workers')
+plt.plot(iteration, data4, label='4 Backends 4 Workers')
+plt.plot(iteration, data12, label='4 Backends 12 Workers')
+plt.plot(iteration, data36, label='8 Backends 24 Workers')
 
 plt.xlabel('Iteration')
 plt.ylabel('Response Time (Milliseconds)')

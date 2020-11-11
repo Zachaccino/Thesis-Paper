@@ -1,0 +1,12 @@
+# AVG 4-4
+AVG 50 Devs:  4.03
+AVG: 100 Devs 4.87
+AVG: 200 Devs 5.26
+
+# AVG 4-12
+AVG: 100 Devs 4.46
+AVG: 200 Devs 7.75
+
+# AVG 8-24
+AVG: 200 Devs 6.31
+AVG: 500 Devs 178.66
