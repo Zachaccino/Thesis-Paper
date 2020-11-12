@@ -289,7 +289,7 @@ The figure \ref{fig:8-24} shows the response time for each iteration under diffe
 	\label{fig:8-24}
 \end{figure}
 
-The figure \ref{fig:jq-bottle} shows the results of different attepmts at minimising the bottlenecks. The response time is measured by simulating 300 devices making 100 requests each.  The 2 free threads with 1 job queue configuration is the baseline performance, and it is the same configuration that we used above. With this configuration, The peak response time reaches 160 milliseconds, which is very slow. The first attempt is increasing the number of job queues from one to two, so that the load is distributed over two separate job queues. The effect of using more job queues is it greatly improvs the peak response time, and takes longer to reach the peak response time. However, the response time can still be around 100 milliseconds when the queues are nearing its full capacity. The second attempt is increasing the amount of dedicated threads that can be utilised by the job queue from 2 to 4. 
+The figure \ref{fig:jq-bottle} shows the results of different attepmts at minimising the bottlenecks. The response time is measured by simulating 300 devices making 100 requests each.  The 2 free threads with 1 job queue configuration is the baseline performance, and it is the same configuration that we used above. With this configuration, The peak response time reaches 160 milliseconds, which is very slow. The first attempt is increasing the number of job queues from one to two, so that the load is distributed over two separate job queues. The effect of using more job queues is it greatly improvs the peak response time, and takes longer to reach the peak response time. However, the response time can still be around 100 milliseconds when the queues are nearing its full capacity. The second attempt is increasing the amount of dedicated threads that can be utilised by the job queue from 2 to 4. As shown in the figure, the peak response time drops to acceptable 60 miliseconds. This further shows the proposed system is very scalable to accomodate different amount of loads. 
 
 \begin{figure}[!ht]
 	\centering
@@ -299,26 +299,12 @@ The figure \ref{fig:jq-bottle} shows the results of different attepmts at minimi
 \end{figure}
 
 
-The fluctuation is very likely to be caused by the job queue under the impact of limited computational resources being allocated to it. The job queue is most likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more spaces to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has low response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free spaces to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
-
-
-
-
-
-
+The fluctuation is very likely to be caused by the job queue under the impact of limited computational resources. It is likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more space to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has lower response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free space to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
 
 \subsection{Conclusion}
 
+Through the benchmarking process, we have established the proposed system is very scalable. If there are bottlenecks, we can easily increase the number of instances to handle the load, or allow a cluster of servers working together to distribute the load. That means, the proposed system is capable of handling much more demanding loads given that enough computational resources are provided. 
 
-
-\begin{itemize}
-	\item 50 devices with 4 backends 4 workers configuration.
-	\item 100 Devices with 
-\end{itemize}
-
-\begin{itemize}
-	\item Scalable
-	\item Performance 
-\end{itemize}
+With the limited resources available to me, the benchmarking result had shown it is capable of processing up to 200 devices with light horizontal scaling offered by consumer grade computers. 
 
 \end{document}
