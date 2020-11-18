@@ -10,7 +10,7 @@ Verifying the the proposed system is working well with real devices on a small s
 
 \section{Setup} % Things to do before the experiment.
 
-The solar power generation setup is documented in the figure \ref{fig:realworldsensing}. In summary, the solar panel generates electricity, which is measured by the input sensor and fed into the converter. After converting to the desired voltage, the electricity is measured by the output sensor and stored in the battery. Additionally, there is an inverter that converts the DC electricity from the battery to AC. The electricity is then used to power the load and the microcontroller where the load in the experimental setup is a portable air conditioning unit. The real world setup is shown in the figure \ref{fig:realworld1} and \ref{fig:realworld2} and it is functionally equivalent to the setup in figure \ref{fig:realworldsensing}.
+The solar power generation setup is documented in the figure \ref{fig:realworldsensing}. In summary, the solar panel generates electricity, which is measured by the input sensor and fed into the converter. After converting to the desired voltage, the electricity is measured by the output sensor and stored in the battery. Additionally, there is an inverter that converts the DC electricity from the battery to AC. The electricity is then used to power the load and the microcontroller where the load in the experimental setup is a portable air conditioning unit. Finally, the power generation and charging circuit, and the power inverter circuit are proctected by the circuit breakers. The real world setup is shown in the figure \ref{fig:realworld1}, \ref{fig:realworld2}, and \ref{fig:realworld3}. It is functionally equivalent to the setup in figure \ref{fig:realworldsensing}.
 
 \begin{figure}[!ht]
 	\centering
@@ -41,6 +41,13 @@ Configurations of the sim card is either set ahead of firmware compile time or d
 
 \begin{figure}[!ht]
 	\centering
+	\includegraphics[width=0.8\linewidth]{realworld3.png}
+	\caption{The experimental setup (top)}
+	\label{fig:realworld3}
+\end{figure}
+
+\begin{figure}[!ht]
+	\centering
 	\includegraphics[width=0.8\linewidth]{realworld4.png}
 	\caption{The experimental setup (controller)}
 	\label{fig:realworld4}
@@ -48,7 +55,16 @@ Configurations of the sim card is either set ahead of firmware compile time or d
 
 \section{Procedures} % Things to do during the experiment
 
+The experiment follows the following procedures:
 
+\begin{itemize}
+	\item Inspect the experimental setup is connected properly.
+	\item Turn on the circuit breaker to enable the power generation and charging circuit. 
+	\item Turn on the cirtuit breaker to enable the power inverter circuit. 
+	\item Connect the external power source to the microcontroller.
+	\item Connect the board power source to the microcontroller.
+	\item Open the website and verify the data are being recorded.
+\end{itemize}
 
 \section{Analysis}
 
