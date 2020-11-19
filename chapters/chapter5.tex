@@ -45,8 +45,6 @@ Additionally, the proposed system have two configrations that can be tweaked to 
 
 The components of the proposed system are deployed to the benchmarking server using Docker Containers\footnote{A container virtualisation method, which allows the components to be run in an isolated environment that is always identical regardless of the environments of the server.} to manage the runtime dependencies. Note that this method of deployment have minimal impact of the performance of system. 
 
-\section{Procedures}
-
 \subsection{Limited Computational Resources}
 The configurations listed in the table \ref{tab:lowsysconfbench} are used to observe the behaviours of the proposed system with limited computation resources that is comparable to a modern laptop.
 
@@ -120,6 +118,8 @@ The proposed system is designed to scale, that is, having the capability of runn
 	\end{center}
 \end{table}
 
+\section{Procedures}
+
 \subsection{Generating Loads}
 
 The simulator is used to generate realisitic loads by spawning computer processes that are accssing the backend in the same manner as a real remote sensing device. For each simulated remote sensing device, it sends the sensing data to the backend every second for a total of 500 iterations\footnote{One iteration means sending data to the backend one time.} to create a sustained load. 
@@ -132,6 +132,7 @@ To verify the simulator is performing normally, that is, the simulator is genera
 To quantify the performance, the response time of each request is measured and recorded. Once a simulated device has finished sending data, the response time for each iteration is saved to a CSV (Comma Seperated Values) file. Once all simulated devices have finished sending data, the average response time for each iteration across all simulated devices is calculated and saved to another CSV file. This is used to determine how well the backend handles various loads.
 
 The monitoring delay is the time it takes from recording the data in the sensing device, to showing the data on the client. In the benchmarking, the delay can be measured by the time duration between the termination of the last simulated device, and receiving the last data update. If the last simulated device terminated at around the same time as the last data update, then the system is keeping up with the load. If the last data update is received significantly later than the termination of the last simulated device, then it must indicates the system cannot keep up with the number of data updates. 
+
 
 \section{Analysis}
 
@@ -301,9 +302,44 @@ The figure \ref{fig:jq-bottle} shows the results of different attepmts at minimi
 
 The fluctuation is very likely to be caused by the job queue under the impact of limited computational resources. It is likely suffering from slow memory allocation when the job queue is nearing its full capacity and it needs to find more space to store the tasks. When the job queue have plenty of space remaining, the job can be added immediately, which has lower response time. As the queue is about to full, and the slow memory allocation cannot keep up with the incoming jobs, the response time is significantly increased as it is waiting for free space to be available in the queue. Once the memory allocation is completed, there are plenty of space left, the response time drops again. This process is repeated again and again, causing the fluctuations. 
 
+\subsection{Batch Processing}
+
+In the previous section where horizontal scalling is tested and we see some big improvements. The problem with the previous approach is it aims to achieve the best performance by using a lot of computational resources. For example, handling the data insertion request individually. This approach means the number of jobs in the job queue positively proportional to the number of devices in the system, which implies the amount of workers is positively proportional to the number of devices as well. This is fine if we have a lot of computational resources to scale up the system, but that is not always the case. In which case, compromises have to be made to accomodate situations where computational resources are limited. 
+
+As we have found out that one of the limiting factor is how many data insertion requests the system can handle, that means we can attempt to reduce the number of requests in the system to improve the performance. Batch processing is a simple idea where many data insertion requests are buffered somewhere in the system, and then inserted altogether. The tradeoff of this approach is the data update is no longer instantaneous but delayed for at most one second due to buffering. The benefit of this approach is decoupling the number of data insertion requests in the job queue from the number of devices. That is, with batch processing, there are at most one data insertion request performing all data insertions every second. 
+
+One of the main reason the batch processing can insert the same amount of data much faster and less demanding is because each data insertion request have to establish a connection with the databse. If there are many data insertion requests, that means there is a hugh overhead at establishing a new connection everytime. In batch processing, there is only one request inserting a large batch of data, which reduces the number of times it needs to establish a new connection for inserting the same amount of data.
+
+The batch processing benchmark is performed with the configuration detailed in the table \ref{tab:batch}
+
+\begin{table}[h!]
+	\begin{center}
+		\caption{The batch processing benchmarking configuration.}
+		\label{tab:batch}
+		\begin{tabular}{l|l|l|l|l}
+			\toprule
+			\textbf{Backends} & \textbf{Workers} & \textbf{Free Threads} & \textbf{NO. Devices}\\
+			\midrule
+			6 & 8 & 2 & 1000\\
+			\bottomrule
+		\end{tabular}
+	\end{center}
+\end{table}
+
+During the benchmark, each device performs 100 iterations of data insertion and the response time of each iteration is measured. The average response time of each iteration across devices is shown in the figure \ref{fig:batch}. Despite the average response time of each iteration is relatively slow, the batch processing enables the system to handle 1000 devices with no prolonged monitoring delay at all. The improvement comparing to the previous approach is 800 extra devices. 
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[width=\linewidth]{batch1000.png}
+	\caption{The response time for each iteration using batch processing.}
+	\label{fig:batch}
+\end{figure}
+
+
+
 \subsection{Conclusion}
 
-Through the benchmarking process, we have established the proposed system is very scalable. If there are bottlenecks, we can easily increase the number of instances to handle the load, or allow a cluster of servers working together to distribute the load. That means, the proposed system is capable of handling much more demanding loads given that enough computational resources are provided. 
+Through the benchmarking process, we have established the proposed system is scalable. If there are bottlenecks, we can identify where the bottleneck occured and easily increase the number of component instances that are bottlenecking the system to handle the load, or allow a cluster of servers working together to distribute the load. That means, the proposed system is capable of handling much more demanding loads given that enough computational resources are provided. 
 
 With the limited resources available to me, the benchmarking result had shown it is capable of processing up to 200 devices with light horizontal scaling offered by consumer grade computers. 
 
