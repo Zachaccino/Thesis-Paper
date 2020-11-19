@@ -4,9 +4,14 @@
 
 \chapter{Conclusion}
 
-\section{Implications}
+The aim of the thesis is designing an efficient communication system that incorporates LTE cellular network for power systems such as a solar farm, where a large amount of devices covering a wide area is the typical chararistic of this type of systems. 
 
-\section{Future work}
+The benchmarking result had shown the system is scalable. That means, if there are bottlenecks in the system, the bottleneck can be solved by increasing the number of instances of the bottlenecking component, or introducing additional servers working together to distribute the load. From the practical point of view, the proposed system is capable of handling various amount of devices in the power system if it is given enough computational resources. Furthermore, the proposed system can easily switch to batch processing mode to accomodate many more devices at the cost of a small delay in showing the data on the web client. To put things in perspective, assuming the system is using the batch processing mode with a consumer grade high-end computer, the proposed system is capable of handling 1000 solar panels simultaneously recording and sending data every second. That is one fifth of the size of the world's largest solar farm, the Tengger Desert Solar Park in China, which has approximatly 4600 solar panels\cite{gienergy}. 
 
+The real-world testing had shown the system is capable of storing sensing data, showing sensing data, receiving real-time data update, and controlling device behaviours. Unfortunatly, device controlling capabilities are limited to shutting down the device only. This is due to the controlling system is depending on the work of another research student who is responsible for developing a custom converter and charger to replace the commercial product that we are using, and the comercial product does not allow us to control its behaviours. 
+
+The thesis demonstrates the proposed system is capable of handling 200 devices under normal processing mode or 1000 devices under batch processing mode, with consumer grade computers. The system is expected to work with a large scale power system, given enough resourses, based on the benchmarking results. However, the system configuration that is capable of handling the largest solar farm in the near future is unclear and the performance of such a system remains untested due to the time and resource contraints. 
+
+Considering the results as stated above, other possible means of communication such as ZigBee and Wi-Fi can be used to replace the LTE network for small scale power systems, and optimisations are needed to match the characteristics of small scale power systems.
 
 \end{document}
